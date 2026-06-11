@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllGameSlugs, getGame } from "@/lib/games";
 import { getArticles } from "@/lib/articles";
-import { CATEGORIES } from "@/lib/schemas";
-import type { Category } from "@/lib/schemas";
 
 // Sitemap is rebuilt whenever the page revalidates (every 5 mins)
 export const revalidate = 300;

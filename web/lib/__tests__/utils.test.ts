@@ -13,7 +13,6 @@ import {
   CONFIRMED_THRESHOLD,
   LIKELY_THRESHOLD,
   BREAKING_HOURS,
-  NEW_HOURS,
 } from "../utils";
 
 // ─── Confidence tiers ──────────────────────────────────────────────────────────
