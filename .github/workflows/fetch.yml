@@ -1,0 +1,45 @@
+name: Fetch & Classify
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    name: Run pipeline
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: pipeline
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pipeline
+        run: uv run pipeline
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          LOG_LEVEL: INFO
+          FETCH_TIMEOUT_SECONDS: 30
+          MAX_RETRIES: 3
+
+      - name: Ping heartbeat on success
+        if: success()
+        run: |
+          curl -fsS "${{ secrets.UPTIMEROBOT_HEARTBEAT_URL }}" \
+            -o /dev/null

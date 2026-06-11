@@ -1,0 +1,131 @@
+name: CI
+
+# Runs on every push to main AND on every pull request targeting main.
+# Pull requests get a Vercel preview deploy automatically — CI just validates
+# the code is clean before that preview goes live.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Typecheck + Lint + Unit tests ──────────────────────────────────
+  # These are fast checks — run first, fail fast if something is wrong.
+  test:
+    name: Typecheck · Lint · Unit tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        # All commands run inside the web/ directory
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          # Cache yarn dependencies — speeds up subsequent runs significantly
+          cache: "yarn"
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        # --frozen-lockfile = fail if yarn.lock is out of date.
+        # Prevents "works on my machine" issues where local deps differ from CI.
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Unit + component tests
+        run: yarn test
+        env:
+          # Vitest needs these to pass env validation in lib/env.ts
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+  # ── Job 2: Build ──────────────────────────────────────────────────────────
+  # Runs after test job passes. Verifies the production build succeeds.
+  # Vercel also builds, but catching build errors here gives faster feedback.
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    # needs: test means this job only runs if the test job passed
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+  # ── Job 3: E2E tests (PRs only) ───────────────────────────────────────────
+  # Playwright is slow — only run on PRs, not on every push to main.
+  # On main, Vercel's deployment IS the E2E check.
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: build
+    # Only run on pull requests, skip on direct pushes to main
+    if: github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: yarn playwright install --with-deps chromium
+        # --with-deps installs system dependencies Chromium needs on Ubuntu
+
+      - name: Build for E2E
+        run: yarn build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Run E2E tests
+        run: yarn test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # Upload test report as artifact so you can download and view it
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 7
