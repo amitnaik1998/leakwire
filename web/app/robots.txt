@@ -1,0 +1,21 @@
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://leakwire.vercel.app";
+
+  return {
+    rules: [
+      {
+        // * = applies to all crawlers (Googlebot, Bingbot, etc.)
+        userAgent: "*",
+        allow: "/",
+        disallow: [
+          "/api/", // no API routes to expose publicly
+        ],
+      },
+    ],
+    // Points crawlers to the sitemap so they find it immediately
+    sitemap: `${baseUrl}/sitemap.xml`,
+  };
+}

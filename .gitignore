@@ -1,0 +1,35 @@
+# ─── Node / Next.js ───────────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+dist/
+
+# ─── Environment secrets — NEVER commit these ─────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Python pipeline ──────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+pipeline/.env
+
+# ─── Build / test artefacts ───────────────────────────────────────────────────
+coverage/
+.vitest-cache/
+playwright-report/
+test-results/
+blob-report/
+
+# ─── Vercel ───────────────────────────────────────────────────────────────────
+.vercel
+
+# ─── OS / editor ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*.log
+*.swp

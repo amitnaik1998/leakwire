@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    // Target modern JS — Next.js handles the downcompile for older browsers
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    // Strict mode: catches the bugs you didn't know you were writing
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    // Next.js requires these
+    "allowJs": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    // "bundler" = TypeScript understands that a bundler (Turbopack/webpack)
+    // will handle the actual module resolution, so it allows bare imports
+    // like `import 'tailwindcss'` without needing .js extensions everywhere
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    // Next.js plugin — enables type-checking for next/navigation, metadata, etc.
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    // @ = root of the web/ directory. So `import { foo } from '@/lib/utils'`
+    // works from any file, no ../../ counting required.
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
