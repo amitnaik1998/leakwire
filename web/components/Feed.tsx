@@ -130,7 +130,7 @@ export default function Feed({ articles, categoryCounts, game }: FeedProps) {
             ) : (
               // 2-col grid on sm+, 1-col on mobile
               // gap-4 = 1rem between cards
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                 {filtered.map((article, index) => (
                   <div key={article.url}>
                     <ArticleCard

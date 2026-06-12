@@ -20,6 +20,7 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     created_at: "2026-06-11T10:00:00Z",
     game: "gta6",
     og_image_url: null,
+    tags: [],
     ...overrides,
   };
 }

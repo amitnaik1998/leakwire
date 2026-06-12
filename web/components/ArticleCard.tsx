@@ -1,174 +1,190 @@
-'use client'
+// web/components/ArticleCard.tsx
 
-// 'use client' because this is nested inside Feed (a client component).
-// In Next.js, any component imported by a client component must also be a
-// client component — the 'use client' boundary propagates downward.
-// ArticleCard has no state of its own, but it needs the client context.
+"use client";
 
-import Image from 'next/image'
-import { useState } from 'react'
-import type { Article } from '@/lib/schemas'
-import type { GameConfig } from '@/lib/games'
-import { getSourceTier, SOURCE_TIER_LABELS } from '@/lib/games'
+import Image from "next/image";
+import { useState } from "react";
+import type { Article } from "@/lib/schemas";
+import type { GameConfig } from "@/lib/games";
+import { getSourceTier, SOURCE_TIER_LABELS } from "@/lib/games";
 import {
   getConfidenceTier,
   getConfidenceLabel,
   formatConfidencePct,
-  getEdgeClass,
-  getBadgeClass,
   getRecencyBadge,
   getRecencyLabel,
   relativeTime,
-} from '@/lib/utils'
-import { CATEGORY_LABELS } from '@/lib/schemas'
+} from "@/lib/utils";
 
-// Category thumbnail fallback colors — shown when og_image_url is null
-const CATEGORY_FALLBACK_COLORS: Record<string, string> = {
-  release_date: '#E8643C',
-  gameplay:     '#5BC98A',
-  story:        '#EDB14F',
-  trailer:      '#E8643C',
-  rumour:       '#E0716F',
-  business:     '#8A8F98',
-  other:        '#5A5F68',
-  unrelated:    '#5A5F68',
-}
+// Category fallback gradients — used when og_image_url is null.
+// Each category gets a dark two-tone gradient that feels intentional,
+// not like a broken image. Colors are derived from the design tokens.
+const CATEGORY_GRADIENTS: Record<string, string> = {
+  release_date: "linear-gradient(160deg, #1f1008 0%, #3d2010 100%)",
+  gameplay: "linear-gradient(160deg, #0d1f10 0%, #1a3d20 100%)",
+  story: "linear-gradient(160deg, #1a1040 0%, #2d1b5e 100%)",
+  trailer: "linear-gradient(160deg, #1f0a0a 0%, #3d1515 100%)",
+  rumour: "linear-gradient(160deg, #1f1008 0%, #3d200a 100%)",
+  business: "linear-gradient(160deg, #0d0f1a 0%, #1a1f3d 100%)",
+  other: "linear-gradient(160deg, #0f1318 0%, #1a2030 100%)",
+  unrelated: "linear-gradient(160deg, #0f1318 0%, #1a2030 100%)",
+};
+
+// Confidence accent colors — the full-width bar at the bottom of each card.
+// More prominent than the old left edge, immediately scannable.
+const ACCENT_COLORS: Record<string, string> = {
+  confirmed: "#5BC98A",
+  likely: "#EDB14F",
+  rumour: "#E0716F",
+};
 
 interface ArticleCardProps {
-  article: Article
-  game:    GameConfig
+  article: Article;
+  game: GameConfig;
 }
 
 export default function ArticleCard({ article, game }: ArticleCardProps) {
-  // Track image load errors so we fall back to the color block
-  const [imgError, setImgError] = useState(false)
+  const [imgError, setImgError] = useState(false);
 
-  const tier        = getConfidenceTier(article.confidence)
-  const edgeClass   = getEdgeClass(article.confidence)
-  const badgeClass  = getBadgeClass(article.confidence)
-  const recency     = getRecencyBadge(article.published_at)
-  const sourceTier  = getSourceTier(article.source, game)
-  const fallbackBg  = CATEGORY_FALLBACK_COLORS[article.category] ?? '#5A5F68'
-  const hasImage    = !!article.og_image_url && !imgError
+  const tier = getConfidenceTier(article.confidence);
+  const sourceTier = getSourceTier(article.source, game);
+  const recency = getRecencyBadge(article.published_at);
+  const hasImage = !!article.og_image_url && !imgError;
+  const gradient =
+    CATEGORY_GRADIENTS[article.category] ?? CATEGORY_GRADIENTS.other;
+  const accent = ACCENT_COLORS[tier];
 
   return (
-    // The whole card is a link to the original article
     <a
       href={article.url}
       target="_blank"
       rel="noopener noreferrer"
-      // group = enables group-hover: on child elements
-      className={`
-        group block relative
-        bg-card border border-border
-        rounded-card overflow-hidden
-        transition-all duration-200
-        hover:border-border/80 hover:shadow-card-hover
-        hover:-translate-y-px
-        ${edgeClass}
-      `}
-      // rounded-card = uses our --radius-card: 5px token
+      className="group block relative rounded-card overflow-hidden transition-transform duration-300 hover:-translate-y-0.5"
+      style={{ minHeight: "180px" }}
     >
-
-      {/* ── Thumbnail ──────────────────────────────────────────────────────── */}
-      <div className="relative w-full aspect-video bg-card overflow-hidden">
+      {/* ── Background layer — real image or category gradient ──────────── */}
+      <div className="absolute inset-0">
         {hasImage ? (
           <Image
             src={article.og_image_url!}
             alt={article.title}
             fill
-            // object-cover = crop to fill, maintain aspect ratio (like CSS background-size: cover)
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             onError={() => setImgError(true)}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            // sizes tells the browser which image size to download based on viewport
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
           />
         ) : (
-          // Fallback: category-colored block with a subtle label
+          // Category gradient fallback — looks intentional, not broken
           <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ backgroundColor: `${fallbackBg}18` }}
-            // The 18 at the end = 10% opacity in hex (0–255 → 0–FF)
-          >
-            <span
-              className="text-xs font-mono uppercase tracking-widest opacity-40"
-              style={{ color: fallbackBg }}
-            >
-              {CATEGORY_LABELS[article.category] ?? article.category}
-            </span>
-          </div>
-        )}
-
-        {/* ── Recency badge — overlaid on thumbnail ─────────────────────── */}
-        {recency && (
-          <div className="absolute top-2 left-2">
-            <span className={`
-              ${recency === 'breaking' ? 'badge-breaking' : recency === 'new' ? 'badge-new' : 'badge-today'}
-              inline-block rounded-pill px-2 py-0.5 text-xs font-mono font-bold uppercase
-            `}>
-              {getRecencyLabel(recency)}
-            </span>
-          </div>
+            className="w-full h-full transition-opacity duration-500 group-hover:opacity-80"
+            style={{ background: gradient }}
+          />
         )}
       </div>
 
-      {/* ── Card body ──────────────────────────────────────────────────────── */}
-      <div className="p-3 space-y-2">
+      {/* ── Gradient overlay — ensures text is always readable ──────────── */}
+      {/* Two-layer gradient: heavy at bottom for content, subtle at top */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.08) 100%)",
+        }}
+      />
 
-        {/* ── Source line ────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 text-xs text-muted">
-          {/* Source name */}
-          <span className="font-medium truncate">{article.source}</span>
+      {/* ── Confidence accent bar — full width at bottom ─────────────────── */}
+      {/* This is the signature trust signal — instantly scannable */}
+      <div
+        className="absolute bottom-0 left-0 right-0 z-10"
+        style={{ height: "3px", background: accent }}
+      />
 
-          {/* Source tier badge — small pill */}
-          <span className="
-            shrink-0 bg-surface border border-border rounded-pill
-            px-1.5 py-px text-subtle text-[10px] uppercase tracking-wide font-mono
-          ">
+      {/* ── Content — always at the bottom of the card ───────────────────── */}
+      <div className="absolute inset-x-0 bottom-0 z-10 p-3 pb-4">
+        {/* Source line */}
+        {/* Source line */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[10px] text-white/50 font-medium truncate">
+            {article.source}
+          </span>
+          <span
+            className="
+    text-[9px] px-1.5 py-px rounded-pill font-mono uppercase tracking-wide
+    border text-white/35 border-white/15
+  "
+          >
             {SOURCE_TIER_LABELS[sourceTier]}
           </span>
-
-          {/* Spacer */}
+          {recency && (
+            <span
+              className={`
+      ${recency === "breaking" ? "badge-breaking" : recency === "new" ? "badge-new" : "badge-today"}
+      inline-block rounded-pill px-2 py-0.5 text-[9px] font-mono font-bold uppercase
+    `}
+            >
+              {getRecencyLabel(recency)}
+            </span>
+          )}
           <span className="flex-1" />
-
-          {/* Relative timestamp */}
           <time
             dateTime={article.published_at}
-            className="tabular text-subtle shrink-0"
+            className="text-[10px] text-white/40 font-mono shrink-0"
           >
             {relativeTime(article.published_at)}
           </time>
         </div>
 
-        {/* ── Title ──────────────────────────────────────────────────────── */}
-        <h3 className="
-          text-sm font-semibold text-fore leading-snug
+        {/* Title */}
+        <h3
+          className="
+          text-sm font-semibold text-white leading-snug mb-1.5
           line-clamp-2
-          group-hover:text-accent transition-colors duration-150
-        ">
-          {/* line-clamp-2 = max 2 lines, then '…' — keeps cards uniform height */}
+          group-hover:text-white/90 transition-colors duration-150
+        "
+        >
           {article.title}
         </h3>
 
-        {/* ── Summary ─────────────────────────────────────────────────────── */}
+        {/* Summary — slightly muted white */}
         {article.summary && (
-          <p className="text-xs text-muted leading-relaxed line-clamp-3">
+          <p className="text-[10px] text-white/55 leading-relaxed line-clamp-2 mb-2">
             {article.summary}
           </p>
         )}
 
-        {/* ── Confidence badge ────────────────────────────────────────────── */}
-        <div className="pt-1">
-          <span className={`
-            ${badgeClass}
-            inline-block rounded-pill px-2.5 py-0.5
-            text-xs font-mono font-bold uppercase tracking-wide
-          `}>
-            {getConfidenceLabel(tier)} · {formatConfidencePct(article.confidence)}
+        {/* Footer — confidence badge + tags */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className="
+            text-[9px] font-mono font-bold uppercase tracking-wide
+            px-2 py-0.5 rounded-pill
+            border
+          "
+            style={{
+              color: accent,
+              borderColor: `${accent}50`,
+              background: `${accent}18`,
+            }}
+          >
+            {getConfidenceLabel(tier)} ·{" "}
+            {formatConfidencePct(article.confidence)}
           </span>
-        </div>
 
+          {/* Tags — shown as subtle pills */}
+          {article.tags.slice(0, 2).map((tag) => (
+            <span
+              key={tag}
+              className="
+                text-[9px] px-1.5 py-0.5 rounded
+                text-white/45 border border-white/10
+                bg-white/5
+              "
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
     </a>
-  )
+  );
 }

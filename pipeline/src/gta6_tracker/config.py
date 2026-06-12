@@ -1,4 +1,4 @@
-# src/gta6_tracker/config.py
+# pipeline/src/gta6_tracker/config.py
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,10 +15,19 @@ class Settings(BaseSettings):
     fetch_timeout_seconds: int = 30
     max_retries: int = 3
 
+    og_fetch_timeout: float = 5.0
+    # Seconds to wait when fetching an article page for its og:image.
+    # Kept deliberately low — a slow site should never stall the whole pipeline.
+
+    og_fetch_max_bytes: int = 30_000
+    # We stream each page and stop after 30KB.
+    # The <head> section (where og:image lives) is always within the first 30KB.
+    # This avoids downloading full multi-MB pages just to read one meta tag.
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=False,  # DATABASE_URL and database_url both work
+        case_sensitive=False,
     )
 
 

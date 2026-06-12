@@ -9,8 +9,8 @@ export type SourceTier = "official" | "press" | "community" | "insider";
 
 export const SOURCE_TIER_LABELS: Record<SourceTier, string> = {
   official: "Official",
-  press: "Press",
-  community: "Community",
+  press: "Media",
+  community: "Fan",
   insider: "Insider",
 };
 
