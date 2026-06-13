@@ -110,7 +110,11 @@ describe("getRecencyBadge", () => {
   });
 
   it("returns today for same calendar day beyond 6 hours", () => {
-    const date = new Date("2026-06-11T01:00:00Z"); // 11 hours ago, same day
+    // getRecencyBadge compares calendar days with toDateString() (LOCAL time),
+    // so we must build the date relative to `now`'s local day — not a UTC literal,
+    // which would land on the previous local day in timezones behind UTC.
+    const date = new Date(now);
+    date.setHours(now.getHours() - 8); // 8h earlier, same local calendar day, > NEW_HOURS
     expect(getRecencyBadge(date, now)).toBe("today");
   });
 

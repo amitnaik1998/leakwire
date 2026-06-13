@@ -59,32 +59,45 @@ describe("ArticleCard confidence badges", () => {
   });
 });
 
-// ─── Left edge class ───────────────────────────────────────────────────────────
+// ─── Confidence accent bar ───────────────────────────────────────────────────
+// The card signals confidence via a 3px full-width bar at the bottom, colored
+// with an inline style from ACCENT_COLORS — NOT a card-edge-* CSS class.
 
-describe("ArticleCard left edge", () => {
-  it("applies confirmed edge class for high confidence", () => {
+describe("ArticleCard confidence accent bar", () => {
+  // Mirror of ACCENT_COLORS in ArticleCard.tsx. jsdom serializes inline
+  // backgrounds to rgb(), so we assert against the rgb form.
+  const ACCENT_RGB = {
+    confirmed: "rgb(91, 201, 138)", // #5BC98A
+    likely: "rgb(237, 177, 79)", //    #EDB14F
+    rumour: "rgb(224, 113, 111)", //   #E0716F
+  };
+
+  // The accent bar is the only element styled with height: 3px.
+  function accentBar(container: HTMLElement) {
+    return Array.from(container.querySelectorAll<HTMLElement>("div")).find(
+      (el) => el.style.height === "3px",
+    );
+  }
+
+  it("uses the confirmed accent for high confidence", () => {
     const { container } = render(
       <ArticleCard article={makeArticle({ confidence: 0.95 })} game={game} />,
     );
-    // The outer <a> tag should have the card-edge-confirmed class
-    const link = container.querySelector("a");
-    expect(link?.className).toContain("card-edge-confirmed");
+    expect(accentBar(container)?.style.background).toBe(ACCENT_RGB.confirmed);
   });
 
-  it("applies likely edge class for medium confidence", () => {
+  it("uses the likely accent for medium confidence", () => {
     const { container } = render(
       <ArticleCard article={makeArticle({ confidence: 0.75 })} game={game} />,
     );
-    const link = container.querySelector("a");
-    expect(link?.className).toContain("card-edge-likely");
+    expect(accentBar(container)?.style.background).toBe(ACCENT_RGB.likely);
   });
 
-  it("applies rumour edge class for low confidence", () => {
+  it("uses the rumour accent for low confidence", () => {
     const { container } = render(
       <ArticleCard article={makeArticle({ confidence: 0.4 })} game={game} />,
     );
-    const link = container.querySelector("a");
-    expect(link?.className).toContain("card-edge-rumour");
+    expect(accentBar(container)?.style.background).toBe(ACCENT_RGB.rumour);
   });
 });
 
