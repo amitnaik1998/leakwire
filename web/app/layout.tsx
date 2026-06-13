@@ -1,6 +1,6 @@
-import type { Metadata, Viewport } from 'next'
-import { Space_Grotesk, Space_Mono } from 'next/font/google'
-import './globals.css'
+import type { Metadata, Viewport } from "next";
+import { Space_Grotesk, Space_Mono } from "next/font/google";
+import "./globals.css";
 
 // ─── FONT LOADING ──────────────────────────────────────────────────────────────
 // next/font does three things:
@@ -13,20 +13,20 @@ import './globals.css'
 // The --nf-* names avoid a naming conflict with Tailwind's --font-* vars.
 
 const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
+  subsets: ["latin"],
   // variable font: one file covers weights 300–700 — smaller network payload
   // than loading separate 400.woff2, 700.woff2, etc.
-  variable: '--nf-display',
-  display: 'swap', // show fallback font immediately; swap to Space Grotesk once loaded
-})
+  variable: "--nf-display",
+  display: "swap", // show fallback font immediately; swap to Space Grotesk once loaded
+});
 
 const spaceMono = Space_Mono({
-  subsets: ['latin'],
+  subsets: ["latin"],
   // Space Mono is NOT a variable font — must request specific weights
-  weight: ['400', '700'],
-  variable: '--nf-mono',
-  display: 'swap',
-})
+  weight: ["400", "700"],
+  variable: "--nf-mono",
+  display: "swap",
+});
 
 // ─── SITE-WIDE METADATA ────────────────────────────────────────────────────────
 // These values are the defaults. Each page/layout can override them.
@@ -35,25 +35,32 @@ const spaceMono = Space_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Leakwire',
-    default: 'Leakwire — GTA VI Intel Tracker',
+    template: "%s | Leakwire",
+    default: "Leakwire — GTA VI Intel Tracker",
   },
   description:
-    'Every GTA VI signal. One feed. Zero noise. ' +
-    'Track confirmed news, credible leaks, and community rumours in real time.',
-  keywords: ['GTA 6', 'GTA VI', 'Grand Theft Auto 6', 'leaks', 'news', 'release date'],
-  authors: [{ name: 'Leakwire' }],
+    "Every GTA VI signal. One feed. Zero noise. " +
+    "Track confirmed news, credible leaks, and community rumours in real time.",
+  keywords: [
+    "GTA 6",
+    "GTA VI",
+    "Grand Theft Auto 6",
+    "leaks",
+    "news",
+    "release date",
+  ],
+  authors: [{ name: "Leakwire" }],
 
   // Tells crawlers this is the canonical domain once we buy one.
   // Update metadataBase when moving from *.vercel.app to leakwire.gg (or similar).
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://leakwire.vercel.app'
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://leakwire.vercel.app",
   ),
 
   openGraph: {
-    siteName: 'Leakwire',
-    type: 'website',
-    locale: 'en_US',
+    siteName: "Leakwire",
+    type: "website",
+    locale: "en_US",
   },
 
   // Tells Search Console this is our verified site — set the env var in Vercel
@@ -65,15 +72,23 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-}
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon-256.png",
+  },
+};
 
 export const viewport: Viewport = {
   // Prevents iOS from zooming on input focus — critical for the search bar UX
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   // Accent color for browser chrome (tab bar on Android, address bar)
-  themeColor: '#0B0D12',
-}
+  themeColor: "#0B0D12",
+};
 
 // ─── ROOT LAYOUT ──────────────────────────────────────────────────────────────
 // This layout wraps EVERY page in the app.
@@ -82,7 +97,7 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     // Applying both font variable classes to <html> means:
@@ -102,5 +117,5 @@ export default function RootLayout({
         {children}
       </body>
     </html>
-  )
+  );
 }
