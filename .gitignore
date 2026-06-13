@@ -33,3 +33,7 @@ Thumbs.db
 .idea/
 .vscode/*.log
 *.swp
+
+# ─── Sentry ────────────────────────────────────────────────────────────────────
+.env.sentry-build-plugin
+
