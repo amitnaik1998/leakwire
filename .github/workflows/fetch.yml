@@ -1,14 +1,23 @@
+# .github/workflows/fetch.yml
+
 name: Fetch & Classify
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/60 * * * *"
   workflow_dispatch:
+
+# Concurrency group — if a new run starts while one is already running,
+# cancel the old one immediately. Only one pipeline run at a time, ever.
+concurrency:
+  group: fetch-pipeline
+  cancel-in-progress: true
 
 jobs:
   fetch:
     name: Run pipeline
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     defaults:
       run:
